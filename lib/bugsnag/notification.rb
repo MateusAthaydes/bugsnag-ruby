@@ -33,7 +33,7 @@ module Bugsnag
     attr_accessor :configuration
 
     class << self
-      def deliver_exception_payload(endpoint, payload)
+      def deliver_exception_payload(endpoint, payload, configuration)
         begin
           payload_string = Bugsnag::Helpers.dump_json(payload)
 
@@ -44,7 +44,7 @@ module Bugsnag
             payload_string = Bugsnag::Helpers.dump_json(payload)
           end
 
-          response = post(endpoint, {:body => payload_string})
+          response = post(endpoint, {:body => payload_string, :verify => configuration.ssl_verify})
           Bugsnag.debug("Notification to #{endpoint} finished, response was #{response.code}, payload was #{payload_string}")
         rescue StandardError => e
           # KLUDGE: Since we don't re-raise http exceptions, this breaks rspec
@@ -250,7 +250,7 @@ module Bugsnag
           :events => [payload_event]
         }
 
-        self.class.deliver_exception_payload(endpoint, payload)
+        self.class.deliver_exception_payload(endpoint, payload, @configuration)
       end
     end
 
